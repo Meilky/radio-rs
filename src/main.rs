@@ -1,12 +1,24 @@
 use minifb::{Key, Window, WindowOptions};
-use std::{borrow::BorrowMut, cell::RefCell};
+use std::cell::RefCell;
 
 mod chart;
 
 use crate::chart::Chart;
+use crate::chart::Note;
 
 const WIDTH: usize = 100;
 const HEIGHT: usize = 25;
+
+fn fret_to_color(fret: usize) -> u32 {
+    match fret {
+        0 => 0x00FF00,
+        1 => 0xFF0000,
+        2 => 0xFFFF00,
+        3 => 0x0000FF,
+        4 => 0xFF9F00,
+        _ => 0x000000,
+    }
+}
 
 struct CloneHero<'a> {
     buf: &'a RefCell<Vec<u32>>,
@@ -31,18 +43,17 @@ impl<'a> CloneHero<'a> {
     }
 
     fn update(&mut self, delta_time: f32) {
-        // assuming a bpm of 120 * 1000 like in chart
-        let bpm: usize = 120000;
         let resolution: usize = 192;
 
-        let nb_notes: usize = WIDTH / 5;
+        for i in 0..20 {
+            let tick = i * resolution;
 
-        // draw player notes
-        self.draw_note(0, 0, 0x00FF00);
-        self.draw_note(1, 0, 0xFF0000);
-        self.draw_note(2, 0, 0xFFFF00);
-        self.draw_note(3, 0, 0x0000FF);
-        self.draw_note(4, 0, 0xFF9F00);
+            let notes = self.chart.notes.iter().filter(|v| v.tick == tick);
+
+            for note in notes {
+                self.draw_note(note.color, i, fret_to_color(note.color));
+            }
+        }
     }
 
     fn draw_note(&mut self, fret: usize, line: usize, color: u32) {
