@@ -1,5 +1,5 @@
 use minifb::{Key, Window, WindowOptions};
-use std::cell::RefCell;
+use std::{borrow::BorrowMut, cell::RefCell};
 
 mod chart;
 
@@ -31,32 +31,32 @@ impl<'a> CloneHero<'a> {
     }
 
     fn update(&mut self, delta_time: f32) {
-        let mut buf = self.buf.borrow_mut();
-
         // assuming a bpm of 120 * 1000 like in chart
         let bpm: usize = 120000;
         let resolution: usize = 192;
 
+        let nb_notes: usize = WIDTH / 5;
+
         // draw player notes
-        for y in 0..self.height {
-            for x in 0..6 {
-                let pixel_index = y * self.width + x;
+        self.draw_note(0, 0, 0x00FF00);
+        self.draw_note(1, 0, 0xFF0000);
+        self.draw_note(2, 0, 0xFFFF00);
+        self.draw_note(3, 0, 0x0000FF);
+        self.draw_note(4, 0, 0xFF9F00);
+    }
 
-                let mut color = 0x000000;
+    fn draw_note(&mut self, fret: usize, line: usize, color: u32) {
+        let mut buf = self.buf.borrow_mut();
 
-                if y < 5 {
-                    color = 0x00FF00;
-                } else if y < 10 {
-                    color = 0xFF0000;
-                } else if y < 15 {
-                    color = 0xFFFF00;
-                } else if y < 20 {
-                    color = 0x0000FF;
-                } else if y < 25 {
-                    color = 0xFF9F00;
-                }
+        for y in 0..5 {
+            let y_offset = (fret * 5 + y) * self.width;
 
-                buf[pixel_index as usize] = color;
+            for x in 0..5 {
+                let x_offset = line * 5 + x;
+
+                let pixel_index = y_offset + x_offset;
+
+                buf[pixel_index] = color;
             }
         }
     }
@@ -94,7 +94,7 @@ fn main() {
         clone_hero.update(delta_time);
 
         window
-            .update_with_buffer(&buffer.borrow(), WIDTH, HEIGHT)
+            .update_with_buffer(&*buffer.borrow(), WIDTH, HEIGHT)
             .unwrap();
 
         last_frame_time = now;
