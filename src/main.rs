@@ -4,9 +4,8 @@ use std::cell::RefCell;
 mod chart;
 
 use crate::chart::Chart;
-use crate::chart::Note;
 
-const WIDTH: usize = 100;
+const WIDTH: usize = 120;
 const HEIGHT: usize = 25;
 
 fn fret_to_color(fret: usize) -> u32 {
@@ -25,6 +24,7 @@ struct CloneHero<'a> {
     chart: &'a Chart,
     width: usize,
     height: usize,
+    total_time: f32,
 }
 
 impl<'a> CloneHero<'a> {
@@ -39,14 +39,20 @@ impl<'a> CloneHero<'a> {
             width,
             height,
             chart,
+            total_time: 0.0,
         }
     }
 
     fn update(&mut self, delta_time: f32) {
         let resolution: usize = 192;
+        let bpm: usize = 60;
 
-        for i in 0..20 {
-            let tick = i * resolution;
+        let t: f32 = (((resolution as f32 / 16.0) / resolution as f32) * 60.0) / bpm as f32;
+
+        let offset: usize = (self.total_time / t).trunc() as usize;
+
+        for i in 0..self.width / 5 {
+            let tick = (i + offset) * 16;
 
             let notes = self.chart.notes.iter().filter(|v| v.tick == tick);
 
@@ -54,6 +60,8 @@ impl<'a> CloneHero<'a> {
                 self.draw_note(note.color, i, fret_to_color(note.color));
             }
         }
+
+        self.total_time = self.total_time + delta_time;
     }
 
     fn draw_note(&mut self, fret: usize, line: usize, color: u32) {
@@ -101,6 +109,8 @@ fn main() {
     while window.is_open() && !window.is_key_down(Key::Escape) {
         let now = std::time::Instant::now();
         let delta_time = now.duration_since(last_frame_time).as_secs_f32();
+
+        buffer.borrow_mut().fill(0x000000);
 
         clone_hero.update(delta_time);
 

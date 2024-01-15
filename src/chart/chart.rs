@@ -41,7 +41,7 @@ fn parse_note(note_regex: &Regex, line: &str) -> Result<Note, ParseNoteError> {
         Err(_) => return Err(ParseNoteError::InvalidColor),
     };
 
-    if color_parsed > 5 {
+    if color_parsed > 4 {
         return Err(ParseNoteError::UnsuportedColor);
     }
 
