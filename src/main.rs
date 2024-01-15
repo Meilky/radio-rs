@@ -25,6 +25,7 @@ struct CloneHero<'a> {
     width: usize,
     height: usize,
     total_time: f32,
+    last_offset: usize,
 }
 
 impl<'a> CloneHero<'a> {
@@ -40,6 +41,7 @@ impl<'a> CloneHero<'a> {
             height,
             chart,
             total_time: 0.0,
+            last_offset: 0,
         }
     }
 
@@ -51,6 +53,16 @@ impl<'a> CloneHero<'a> {
 
         let offset: usize = (self.total_time / t).trunc() as usize;
 
+        self.total_time = self.total_time + delta_time;
+
+        if self.last_offset == offset {
+            return;
+        }
+
+        self.buf.borrow_mut().fill(0x000000);
+
+        self.last_offset = offset;
+
         for i in 0..self.width / 5 {
             let tick = (i + offset) * 16;
 
@@ -60,8 +72,6 @@ impl<'a> CloneHero<'a> {
                 self.draw_note(note.color, i, fret_to_color(note.color));
             }
         }
-
-        self.total_time = self.total_time + delta_time;
     }
 
     fn draw_note(&mut self, fret: usize, line: usize, color: u32) {
@@ -109,8 +119,6 @@ fn main() {
     while window.is_open() && !window.is_key_down(Key::Escape) {
         let now = std::time::Instant::now();
         let delta_time = now.duration_since(last_frame_time).as_secs_f32();
-
-        buffer.borrow_mut().fill(0x000000);
 
         clone_hero.update(delta_time);
 
