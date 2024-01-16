@@ -6,7 +6,7 @@ mod chart;
 use crate::chart::Chart;
 
 const WIDTH: usize = 120;
-const HEIGHT: usize = 25;
+const HEIGHT: usize = 30;
 
 fn fret_to_color(fret: usize) -> u32 {
     match fret {
@@ -46,6 +46,7 @@ impl<'a> CloneHero<'a> {
     }
 
     fn update(&mut self, delta_time: f32) {
+        let hightway_length: usize = 2;
         let resolution: usize = 192;
         let bpm: usize = 60;
 
@@ -63,7 +64,7 @@ impl<'a> CloneHero<'a> {
 
         self.last_offset = offset;
 
-        for i in 0..self.width / 5 {
+        for i in 0..self.width / 6 {
             let tick = (i + offset) * 16;
 
             let notes = self.chart.notes.iter().filter(|v| v.tick == tick);
@@ -77,13 +78,24 @@ impl<'a> CloneHero<'a> {
     fn draw_note(&mut self, fret: usize, line: usize, color: u32) {
         let mut buf = self.buf.borrow_mut();
 
-        for y in 0..5 {
-            let y_offset = (fret * 5 + y) * self.width;
+        for y in 0..6 {
+            let y_offset = (fret * 6 + y) * self.width;
 
-            for x in 0..5 {
-                let x_offset = line * 5 + x;
+            for x in 0..6 {
+                // remove corner
+                if (y == 0 || y == 5) && (x == 0 || x == 5) {
+                    continue;
+                }
+
+                let x_offset = line * 6 + x;
 
                 let pixel_index = y_offset + x_offset;
+
+                // mid gray
+                if (y == 2 || y == 3) && (x == 2 || x == 3) {
+                    buf[pixel_index] = 0x808080;
+                    continue;
+                };
 
                 buf[pixel_index] = color;
             }
