@@ -116,7 +116,7 @@ impl Chart {
             Err(_) => return Err(ChartFromPathError::InvalidRegex),
         };
 
-        let bpm_regex = match Regex::new(r"\s\s(\d*)\s=\s(\w)\s(\d)") {
+        let bpm_regex = match Regex::new(r"\s\s(\d*)\s=\s(\w)\s(\d+)") {
             Ok(v) => v,
             Err(_) => return Err(ChartFromPathError::InvalidRegex),
         };

@@ -1,4 +1,3 @@
 mod chart;
 
-pub use chart::Chart;
-pub use chart::Note;
+pub use chart::{Bpm, Chart, Note};
