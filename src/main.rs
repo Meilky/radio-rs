@@ -19,8 +19,8 @@ fn fret_to_color(fret: usize) -> u32 {
     }
 }
 
-fn get_time_pass(tick_start: usize, tick_end: usize, bpm: usize) -> usize {
-    (((tick_end - tick_start) / 192) * 60 * 1000) / (bpm / 1000)
+fn get_time_pass(tick_start: usize, tick_end: usize, bpm: usize) -> f32 {
+    (((tick_end - tick_start) / 192) * 60) as f32 / (bpm / 1000) as f32
 }
 
 fn draw_note(buf: &mut Vec<u32>, fret: usize, line: usize, color: u32, width: usize) {
@@ -74,17 +74,14 @@ impl<'a> CloneHero<'a> {
     }
 
     fn update(&mut self, delta_time: f32) {
-        let ms_per_line: usize = 20;
+        let s_per_line: f32 = 0.02;
 
         let mut buf = self.buf.borrow_mut();
 
         buf.fill(0x000000);
 
         for i in 0..(self.width - 6) {
-            let notes = self.get_notes(
-                (self.total_time * 1000.0) as usize + (i * ms_per_line),
-                ms_per_line,
-            );
+            let notes = self.get_notes(self.total_time + (i as f32 * s_per_line), s_per_line);
 
             for note in notes {
                 draw_note(
@@ -100,17 +97,17 @@ impl<'a> CloneHero<'a> {
         self.total_time = self.total_time + delta_time;
     }
 
-    fn get_notes(&self, start: usize, ms_per_line: usize) -> Vec<&Note> {
+    fn get_notes(&self, start: f32, s_per_line: f32) -> Vec<&Note> {
         let mut notes: Vec<&Note> = vec![];
 
         for note in self.chart.notes.iter() {
             let t = self.get_tick_time(note.tick);
 
-            if t >= start && t <= start + ms_per_line {
+            if t >= start && t <= start + s_per_line {
                 notes.push(note);
             }
 
-            if t > start + ms_per_line {
+            if t > start + s_per_line {
                 break;
             }
         }
@@ -118,8 +115,8 @@ impl<'a> CloneHero<'a> {
         notes
     }
 
-    fn get_tick_time(&self, tick: usize) -> usize {
-        let mut time_offset: usize = 0;
+    fn get_tick_time(&self, tick: usize) -> f32 {
+        let mut time_offset: f32 = 0.0;
 
         let mut last_bpm: Option<&Bpm> = Option::None;
 
@@ -180,8 +177,10 @@ fn main() {
 
         clone_hero.update(delta_time);
 
+        println!("{}", delta_time);
+
         window
-            .update_with_buffer(&*buffer.borrow(), WIDTH, HEIGHT)
+            .update_with_buffer(&buffer.borrow(), WIDTH, HEIGHT)
             .unwrap();
 
         last_frame_time = now;
