@@ -1,7 +1,11 @@
+use constant::BUF_SIZE;
+use menu::{App, MainMenu};
 use minifb::{Key, Window, WindowOptions};
 use std::cell::RefCell;
 
 mod chart;
+mod constant;
+mod menu;
 
 use crate::chart::{Bpm, Chart, Note};
 
@@ -155,10 +159,10 @@ fn main() {
 
     let mut window = Window::new(
         "Radio",
-        WIDTH,
-        HEIGHT,
+        constant::WIN_WIDTH,
+        constant::WIN_HEIGHT,
         WindowOptions {
-            scale: minifb::Scale::X8,
+            scale: minifb::Scale::X2,
             ..WindowOptions::default()
         },
     )
@@ -169,20 +173,26 @@ fn main() {
     // Limit to max ~60 fps update rate
     window.limit_update_rate(Some(std::time::Duration::from_micros(16600)));
 
-    let mut last_frame_time = std::time::Instant::now();
+    let mut cur_app: &dyn App = &MainMenu {};
 
-    while window.is_open() && !window.is_key_down(Key::Escape) {
-        let now = std::time::Instant::now();
-        let delta_time = now.duration_since(last_frame_time).as_secs_f32();
+    let buf: &mut [u32; BUF_SIZE] = &mut [0; BUF_SIZE];
 
-        clone_hero.update(delta_time);
+    'top: while window.is_open() {
+        for k in window.get_keys_released() {
+            match k {
+                Key::Escape => break 'top,
+                Key::A => cur_app = &menu::MainMenu {},
+                Key::B => cur_app = &menu::CloneHero {},
+                _ => (),
+            }
+        }
 
-        println!("{}", delta_time);
+        cur_app.render(buf);
 
         window
-            .update_with_buffer(&buffer.borrow(), WIDTH, HEIGHT)
+            .update_with_buffer(buf, constant::WIN_WIDTH, constant::WIN_HEIGHT)
             .unwrap();
 
-        last_frame_time = now;
+        buf.fill(0);
     }
 }
