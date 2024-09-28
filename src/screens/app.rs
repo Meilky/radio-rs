@@ -1,9 +1,9 @@
 use crate::constant::BUF_SIZE;
 use crate::screen::Screen;
 
-pub struct TestScreen;
+pub struct AppScreen;
 
-impl Screen for TestScreen {
+impl Screen for AppScreen {
     fn render(&self, buffer: &mut [u32; BUF_SIZE]) {
         let mid = BUF_SIZE / 2;
 
