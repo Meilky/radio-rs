@@ -19,7 +19,7 @@ impl<'a> App<'a> {
 }
 
 impl<'a> Screen for App<'a> {
-    fn render(&self, buffer: &mut [u32; crate::constant::BUF_SIZE]) {
+    fn render(&self, buffer: &mut [u8]) {
         self.current_screen.borrow().render(buffer);
     }
 }

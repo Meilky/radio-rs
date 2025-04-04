@@ -1,18 +1,11 @@
-use crate::constant::BUF_SIZE;
 use crate::screen::Screen;
 
 pub struct AppScreen;
 
 impl Screen for AppScreen {
-    fn render(&self, buffer: &mut [u32; BUF_SIZE]) {
-        let mid = BUF_SIZE / 2;
-
-        for i in 0..BUF_SIZE {
-            if i < mid {
-                buffer[i] = 0xFFFFFF;
-            } else {
-                buffer[i] = 0x000000;
-            }
+    fn render(&self, buffer: &mut [u8]) {
+        for (_i, pixel) in buffer.chunks_exact_mut(4).enumerate() {
+            pixel.copy_from_slice(&[0xff, 0x00, 0x00, 0xff]);
         }
     }
 }

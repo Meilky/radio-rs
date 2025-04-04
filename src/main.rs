@@ -1,5 +1,11 @@
-use minifb::Key;
-use minifb::{Window, WindowOptions};
+use pixels::{Error, Pixels, SurfaceTexture};
+use winit::dpi::LogicalSize;
+use winit::event::{Event, WindowEvent};
+use winit::event_loop::EventLoop;
+use winit::keyboard::KeyCode;
+use winit::window::WindowBuilder;
+use winit_input_helper::WinitInputHelper;
+
 use screens::{AppScreen, CloneHero};
 
 mod app;
@@ -9,49 +15,79 @@ mod screen;
 mod screens;
 
 use crate::app::App;
-use crate::constant::BUF_SIZE;
 use crate::screen::Screen;
 
 fn main() {
-    let mut window = Window::new(
-        "radio-rs",
-        constant::WIN_WIDTH,
-        constant::WIN_HEIGHT,
-        WindowOptions {
-            scale: minifb::Scale::X2,
-            ..WindowOptions::default()
-        },
-    )
-    .unwrap_or_else(|e| {
-        panic!("{}", e);
-    });
+    let event_loop = EventLoop::new().unwrap();
+    let mut input = WinitInputHelper::new();
+    let window = {
+        let size = LogicalSize::new(constant::WIN_WIDTH as f64, constant::WIN_HEIGHT as f64);
+        WindowBuilder::new()
+            .with_title("radio-rs")
+            .with_inner_size(size)
+            .with_min_inner_size(size)
+            .build(&event_loop)
+            .unwrap()
+    };
 
-    // Limit to max ~60 fps update rate
-    window.set_target_fps(60);
-
-    let buf: &mut [u32; BUF_SIZE] = &mut [0; BUF_SIZE];
+    let mut pixels = {
+        let window_size = window.inner_size();
+        let surface_texture = SurfaceTexture::new(window_size.width, window_size.height, &window);
+        Pixels::new(
+            constant::WIN_WIDTH as u32,
+            constant::WIN_HEIGHT as u32,
+            surface_texture,
+        )
+        .unwrap()
+    };
 
     let app_screen = &mut AppScreen {};
     let clone_hero = &mut CloneHero {};
 
     let app = App::new(app_screen);
 
-    'top: while window.is_open() {
-        for k in window.get_keys_released() {
-            match k {
-                Key::Escape => break 'top,
-                Key::A => app.set_screen(app_screen),
-                Key::B => app.set_screen(clone_hero),
-                _ => (),
+    let _ = event_loop.run(|event, elwt| {
+        // Draw the current frame
+        if let Event::WindowEvent {
+            event: WindowEvent::RedrawRequested,
+            ..
+        } = event
+        {
+            app.render(pixels.frame_mut());
+
+            if let Err(err) = pixels.render() {
+                eprintln!("{}", err);
+                elwt.exit();
+                return;
             }
         }
 
-        app.render(buf);
+        // Handle input events
+        if input.update(&event) {
+            // Close events
+            if input.key_pressed(KeyCode::Escape) || input.close_requested() {
+                elwt.exit();
+                return;
+            }
 
-        window
-            .update_with_buffer(buf, constant::WIN_WIDTH, constant::WIN_HEIGHT)
-            .unwrap();
+            if input.key_pressed(KeyCode::KeyA) {
+                app.set_screen(app_screen);
+            }
 
-        buf.fill(0);
-    }
+            if input.key_pressed(KeyCode::KeyS) {
+                app.set_screen(clone_hero);
+            }
+
+            // Resize the window
+            if let Some(size) = input.window_resized() {
+                if let Err(err) = pixels.resize_surface(size.width, size.height) {
+                    eprintln!("{}", err);
+                    elwt.exit();
+                    return;
+                }
+            }
+
+            window.request_redraw();
+        }
+    });
 }
