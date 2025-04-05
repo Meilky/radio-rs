@@ -1,4 +1,4 @@
-use pixels::{Error, Pixels, SurfaceTexture};
+use pixels::{Pixels, SurfaceTexture};
 use winit::dpi::LogicalSize;
 use winit::event::{Event, WindowEvent};
 use winit::event_loop::EventLoop;
@@ -6,7 +6,7 @@ use winit::keyboard::KeyCode;
 use winit::window::WindowBuilder;
 use winit_input_helper::WinitInputHelper;
 
-use screens::{AppScreen, CloneHero};
+use screens::{AppScreen, CloneHero, PionnerScreen};
 
 mod app;
 mod chart;
@@ -43,6 +43,7 @@ fn main() {
 
     let app_screen = &mut AppScreen {};
     let clone_hero = &mut CloneHero {};
+    let pionner_screen = &mut PionnerScreen {};
 
     let app = App::new(app_screen);
 
@@ -76,6 +77,10 @@ fn main() {
 
             if input.key_pressed(KeyCode::KeyS) {
                 app.set_screen(clone_hero);
+            }
+
+            if input.key_pressed(KeyCode::KeyP) {
+                app.set_screen(pionner_screen);
             }
 
             // Resize the window
