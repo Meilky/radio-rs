@@ -8,4 +8,6 @@ impl Screen for AppScreen {
             pixel.copy_from_slice(&[0xff, 0x00, 0x00, 0xff]);
         }
     }
+
+    fn update(&mut self) {}
 }

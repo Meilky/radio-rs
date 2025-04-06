@@ -41,11 +41,7 @@ fn main() {
         .unwrap()
     };
 
-    let app_screen = &mut AppScreen {};
-    let clone_hero = &mut CloneHero {};
-    let pionner_screen = &mut PionnerScreen {};
-
-    let app = App::new(app_screen);
+    let mut app = App::new(Box::new(PionnerScreen::new()));
 
     let _ = event_loop.run(|event, elwt| {
         // Draw the current frame
@@ -72,15 +68,15 @@ fn main() {
             }
 
             if input.key_pressed(KeyCode::KeyA) {
-                app.set_screen(app_screen);
+                app.set_screen(Box::new(AppScreen {}));
             }
 
             if input.key_pressed(KeyCode::KeyS) {
-                app.set_screen(clone_hero);
+                app.set_screen(Box::new(CloneHero {}));
             }
 
             if input.key_pressed(KeyCode::KeyP) {
-                app.set_screen(pionner_screen);
+                app.set_screen(Box::new(PionnerScreen::new()));
             }
 
             // Resize the window
@@ -92,6 +88,7 @@ fn main() {
                 }
             }
 
+            app.update();
             window.request_redraw();
         }
     });

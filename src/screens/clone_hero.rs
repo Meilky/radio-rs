@@ -8,4 +8,6 @@ impl Screen for CloneHero {
             pixel.copy_from_slice(&[0x00, 0xff, 0x00, 0xff]);
         }
     }
+
+    fn update(&mut self) {}
 }
