@@ -6,7 +6,7 @@ use winit::keyboard::KeyCode;
 use winit::window::WindowBuilder;
 use winit_input_helper::WinitInputHelper;
 
-use screens::{AppScreen, CloneHero, PionnerScreen};
+use screens::{AppScreen, CloneHero, GranTourismoScreen, PionnerScreen};
 
 mod app;
 mod chart;
@@ -41,7 +41,7 @@ fn main() {
         .unwrap()
     };
 
-    let mut app = App::new(Box::new(PionnerScreen::new()));
+    let mut app = App::new(Box::new(GranTourismoScreen::new()));
 
     let _ = event_loop.run(|event, elwt| {
         // Draw the current frame
