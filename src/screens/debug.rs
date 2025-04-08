@@ -1,20 +1,45 @@
-use std::fs::File;
-use std::io::prelude::Read;
-
 use crate::screen::Screen;
 
-pub struct GranTourismoScreen {
+pub struct DebugScreen {
     frame_count: u32,
     frames: Vec<u8>,
 }
 
-impl GranTourismoScreen {
+impl DebugScreen {
     pub fn new() -> Self {
         let mut frames: Vec<u8> = vec![];
 
-        let mut f = File::open("assets/gran_tourismo.rgb").unwrap();
+        let mut next: u8 = 0;
+        for _i in 0..48 {
+            for _j in 0..192 {
+                match next {
+                    0 => {
+                        frames.push(0xff);
+                        frames.push(0x00);
+                        frames.push(0x00);
+                    }
+                    1 => {
+                        frames.push(0x00);
+                        frames.push(0xff);
+                        frames.push(0x00);
+                    }
+                    2 => {
+                        frames.push(0x00);
+                        frames.push(0x00);
+                        frames.push(0xff);
+                    }
+                    _ => {}
+                };
 
-        f.read_to_end(&mut frames).unwrap();
+                next += 1;
+
+                if next == 3 {
+                    next = 0;
+                }
+            }
+
+            next = 0;
+        }
 
         Self {
             frames,
@@ -26,7 +51,7 @@ impl GranTourismoScreen {
 // real resolution: 192*48
 // (5 times win resolution)
 
-impl Screen for GranTourismoScreen {
+impl Screen for DebugScreen {
     fn render(&self, buffer: &mut [u8]) {
         let offset = (self.frame_count * 192 * 48) as usize;
         let mut x: usize = 0;
