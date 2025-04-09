@@ -28,7 +28,7 @@ impl PionnerScreen {
 
 impl Screen for PionnerScreen {
     fn render(&self, buffer: &mut [u8]) {
-        let offset = (self.frame_count * 192 * 48) as usize;
+        let offset = (self.frame_count * 192 * 48 * 3) as usize;
         let mut x: usize = 0;
         let mut y: usize = 0;
         let mut row_count: u8 = 0;
@@ -88,7 +88,7 @@ impl Screen for PionnerScreen {
 
                 column_count += 1;
 
-                let index: usize = offset + (y * 48 * 3) + (x * 3);
+                let index: usize = offset + (y * 192 * 3) + (x * 3);
 
                 let b_pixel = self.frames.get(index..index + 3).unwrap();
 

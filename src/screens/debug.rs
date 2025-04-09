@@ -10,30 +10,45 @@ impl DebugScreen {
         let mut frames: Vec<u8> = vec![];
 
         let mut next: u8 = 0;
-        for _i in 0..48 {
+        for i in 0..48 {
             for _j in 0..192 {
                 match next {
                     0 => {
+                        frames.push(0x00);
                         frames.push(0xff);
                         frames.push(0x00);
-                        frames.push(0x00);
+                        frames.push(i);
                     }
                     1 => {
-                        frames.push(0x00);
                         frames.push(0xff);
                         frames.push(0x00);
+                        frames.push(0x00);
+                        frames.push(i);
                     }
                     2 => {
+                        frames.push(0xff);
+                        frames.push(0xff);
+                        frames.push(0x00);
+                        frames.push(i);
+                    }
+                    3 => {
                         frames.push(0x00);
                         frames.push(0x00);
                         frames.push(0xff);
+                        frames.push(i);
+                    }
+                    4 => {
+                        frames.push(0xff);
+                        frames.push(0x9f);
+                        frames.push(0x00);
+                        frames.push(i);
                     }
                     _ => {}
                 };
 
                 next += 1;
 
-                if next == 3 {
+                if next == 5 {
                     next = 0;
                 }
             }
@@ -53,7 +68,7 @@ impl DebugScreen {
 
 impl Screen for DebugScreen {
     fn render(&self, buffer: &mut [u8]) {
-        let offset = (self.frame_count * 192 * 48) as usize;
+        let offset = (self.frame_count * 192 * 48 * 4) as usize;
         let mut x: usize = 0;
         let mut y: usize = 0;
         let mut row_count: u8 = 0;
@@ -113,11 +128,11 @@ impl Screen for DebugScreen {
 
                 column_count += 1;
 
-                let index: usize = offset + (y * 48 * 3) + (x * 3);
+                let index: usize = offset + x * 4 + y * 192 * 4;
 
-                let b_pixel = self.frames.get(index..index + 3).unwrap();
+                let b_pixel = self.frames.get(index..index + 4).unwrap();
 
-                pixel.copy_from_slice(&[b_pixel[0], b_pixel[1], b_pixel[2], 0xff]);
+                pixel.copy_from_slice(&[b_pixel[0], b_pixel[1], b_pixel[2], b_pixel[3]]);
             }
 
             row_count += 1;
