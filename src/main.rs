@@ -1,4 +1,6 @@
 use pixels::{Pixels, SurfaceTexture};
+use rodio::{OutputStreamBuilder, Sink};
+use std::fs::File;
 use winit::dpi::LogicalSize;
 use winit::event::{Event, WindowEvent};
 use winit::event_loop::EventLoop;
@@ -41,6 +43,16 @@ fn main() {
         .unwrap()
     };
 
+    let stream_handle = OutputStreamBuilder::open_default_stream().unwrap();
+    let sink = Sink::connect_new(stream_handle.mixer());
+
+    let file = File::open("assets/my_goodbyes.mp3").unwrap();
+
+    sink.append(rodio::Decoder::try_from(file).unwrap());
+
+    sink.pause();
+
+
     let mut app = App::new(Box::new(DebugScreen::new()));
 
     let _ = event_loop.run(|event, elwt| {
@@ -77,10 +89,12 @@ fn main() {
 
             if input.key_pressed(KeyCode::KeyP) {
                 app.set_screen(Box::new(PionnerScreen::new()));
+                sink.pause();
             }
 
             if input.key_pressed(KeyCode::KeyG) {
                 app.set_screen(Box::new(GranTourismoScreen::new()));
+                sink.play();
             }
 
             if input.key_pressed(KeyCode::KeyD) {
