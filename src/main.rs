@@ -11,7 +11,6 @@ use winit_input_helper::WinitInputHelper;
 use screens::{AppScreen, CloneHero, DebugScreen, GranTourismoScreen, PionnerScreen};
 
 mod app;
-mod chart;
 mod constant;
 mod screen;
 mod screens;
