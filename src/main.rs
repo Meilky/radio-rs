@@ -1,14 +1,7 @@
-use pixels::{Pixels, SurfaceTexture};
-use rodio::{OutputStreamBuilder, Sink};
 use std::fs::File;
-use winit::dpi::LogicalSize;
-use winit::event::{Event, WindowEvent};
 use winit::event_loop::EventLoop;
-use winit::keyboard::KeyCode;
-use winit::window::WindowBuilder;
-use winit_input_helper::WinitInputHelper;
 
-use screens::{AppScreen, CloneHero, DebugScreen, GranTourismoScreen, PionnerScreen};
+use screens::DebugScreen;
 
 mod app;
 mod constant;
@@ -16,101 +9,20 @@ mod screen;
 mod screens;
 
 use crate::app::App;
-use crate::screen::Screen;
 
 fn main() {
+    println!("{:?}", cpal::ALL_HOSTS);
+
+    let stream_handle = rodio::DeviceSinkBuilder::open_default_sink().unwrap();
+    let mixer = stream_handle.mixer();
+
+    let file = File::open("").unwrap();
+
+    mixer.add(rodio::Decoder::try_from(file).unwrap());
+
     let event_loop = EventLoop::new().unwrap();
-    let mut input = WinitInputHelper::new();
-    let window = {
-        let size = LogicalSize::new(constant::WIN_WIDTH as f64, constant::WIN_HEIGHT as f64);
-        WindowBuilder::new()
-            .with_title("radio-rs")
-            .with_inner_size(size)
-            .with_min_inner_size(size)
-            .build(&event_loop)
-            .unwrap()
-    };
-
-    let mut pixels = {
-        let window_size = window.inner_size();
-        let surface_texture = SurfaceTexture::new(window_size.width, window_size.height, &window);
-        Pixels::new(
-            constant::WIN_WIDTH as u32,
-            constant::WIN_HEIGHT as u32,
-            surface_texture,
-        )
-        .unwrap()
-    };
-
-    let stream_handle = OutputStreamBuilder::open_default_stream().unwrap();
-    let sink = Sink::connect_new(stream_handle.mixer());
-
-    let file = File::open("assets/my_goodbyes.mp3").unwrap();
-
-    sink.append(rodio::Decoder::try_from(file).unwrap());
-
-    sink.pause();
-
 
     let mut app = App::new(Box::new(DebugScreen::new()));
 
-    let _ = event_loop.run(|event, elwt| {
-        // Draw the current frame
-        if let Event::WindowEvent {
-            event: WindowEvent::RedrawRequested,
-            ..
-        } = event
-        {
-            app.render(pixels.frame_mut());
-
-            if let Err(err) = pixels.render() {
-                eprintln!("{}", err);
-                elwt.exit();
-                return;
-            }
-        }
-
-        // Handle input events
-        if input.update(&event) {
-            // Close events
-            if input.key_pressed(KeyCode::Escape) || input.close_requested() {
-                elwt.exit();
-                return;
-            }
-
-            if input.key_pressed(KeyCode::KeyA) {
-                app.set_screen(Box::new(AppScreen {}));
-            }
-
-            if input.key_pressed(KeyCode::KeyC) {
-                app.set_screen(Box::new(CloneHero {}));
-            }
-
-            if input.key_pressed(KeyCode::KeyP) {
-                app.set_screen(Box::new(PionnerScreen::new()));
-                sink.pause();
-            }
-
-            if input.key_pressed(KeyCode::KeyG) {
-                app.set_screen(Box::new(GranTourismoScreen::new()));
-                sink.play();
-            }
-
-            if input.key_pressed(KeyCode::KeyD) {
-                app.set_screen(Box::new(DebugScreen::new()));
-            }
-
-            // Resize the window
-            if let Some(size) = input.window_resized() {
-                if let Err(err) = pixels.resize_surface(size.width, size.height) {
-                    eprintln!("{}", err);
-                    elwt.exit();
-                    return;
-                }
-            }
-
-            app.update();
-            window.request_redraw();
-        }
-    });
+    event_loop.run_app(&mut app).unwrap();
 }
